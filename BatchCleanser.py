@@ -3,6 +3,7 @@ import os
 import shutil
 
 import PIL
+import cv2
 import fitz
 import PySimpleGUI as sg
 import magic
@@ -30,12 +31,16 @@ def ToolRun_BatchCleanser():
         def ClearJson(folder):
             list_of_files = get_list_of_json_files()
             for file in list_of_files:
-                file_fullpath = os.path.join(folder, file)
+                file_fullpath = str(os.path.join(folder, file))
                 if "." not in file:
+                    if ".jpeg" in file:
+                        continue
                     nested_folder = file
                     list_of_files_nested = get_list_of_json_files_nested(file)
                     for nested_file in list_of_files_nested:
-                        nested_file_fullpath = os.path.join(folder, nested_folder, nested_file)
+                        if ".jpeg" in nested_file:
+                            continue
+                        nested_file_fullpath = str(os.path.join(folder, nested_folder, nested_file))
                         if ".json" in nested_file:
                             os.remove(nested_file_fullpath)
                 else:
@@ -45,12 +50,12 @@ def ToolRun_BatchCleanser():
         def ClearPhoto(folder):
             list_of_files = get_list_of_json_files()
             for file in list_of_files:
-                file_fullpath = os.path.join(folder, file)
+                file_fullpath = str(os.path.join(folder, file))
                 if "." not in file:
                     nested_folder = file
                     list_of_files_nested = get_list_of_json_files_nested(file)
                     for nested_file in list_of_files_nested:
-                        nested_file_fullpath = os.path.join(folder, nested_folder, nested_file)
+                        nested_file_fullpath = str(os.path.join(folder, nested_folder, nested_file))
                         if "photo" in nested_file.lower():
                             os.remove(nested_file_fullpath)
                 else:
@@ -60,13 +65,16 @@ def ToolRun_BatchCleanser():
         def ClearAudio(folder):
             list_of_files = get_list_of_json_files()
             for file in list_of_files:
-                file_fullpath = os.path.join(folder, file)
+                if ".jpeg" in file:
+                    continue
+                file_fullpath = str(os.path.join(folder, file))
                 if "." not in file:
-
                     nested_folder = file
                     list_of_files_nested = get_list_of_json_files_nested(file)
                     for nested_file in list_of_files_nested:
-                        nested_file_fullpath = os.path.join(folder, nested_folder, nested_file)
+                        if ".jpeg" in nested_file:
+                            continue
+                        nested_file_fullpath = str(os.path.join(folder, nested_folder, nested_file))
                         if "." in nested_file:
                             mime = magic.Magic(mime=True)
                             nested_filename = mime.from_file(nested_file_fullpath)
@@ -82,12 +90,17 @@ def ToolRun_BatchCleanser():
         def ClearVideo(folder):
             list_of_files = get_list_of_json_files()
             for file in list_of_files:
+                if ".jpeg" in file:
+                    continue
                 file_fullpath = os.path.join(folder, file)
                 if "." not in file:
                     nested_folder = file
                     list_of_files_nested = get_list_of_json_files_nested(file)
                     for nested_file in list_of_files_nested:
-                        nested_file_fullpath = os.path.join(folder, nested_folder, nested_file)
+                        if ".jpeg" in nested_file:
+                            continue
+
+                        nested_file_fullpath = str(os.path.join(folder, nested_folder, nested_file))
                         if "." in nested_file:
                             mime = magic.Magic(mime=True)
                             nested_filename = mime.from_file(nested_file_fullpath)
@@ -132,15 +145,19 @@ def ToolRun_BatchCleanser():
 
 
         list_of_files = get_list_of_json_files()
+        folderlen = len(list_of_files)
+        count = 0
         for file in list_of_files:
-            file_fullpath = os.path.join(folder, file)
+            count += 1
+            print(str(count) + "/" + str(folderlen))
+            file_fullpath = str(os.path.join(folder, file))
             if ".jpeg" in file:
                 continue
             if "." not in file:
                 nested_folder = file
                 list_of_files_nested = get_list_of_json_files_nested(file)
                 for nested_file in list_of_files_nested:
-                    nested_file_fullpath = os.path.join(folder, nested_folder, nested_file)
+                    nested_file_fullpath = str(os.path.join(folder, nested_folder, nested_file))
                     if ".jpeg" in nested_file:
                         continue
                     if ".pdf" in nested_file:
@@ -179,12 +196,20 @@ def ToolRun_BatchCleanser():
                             #     doc.save(folder + "/" + nested_folder + "/" + nested_file[0:nested_file.lower().index(".")] + ".jpeg")
                             #     os.remove(folder + "/" + nested_folder + "/" + nested_file)
                             # except OSError:
-                            doc = Image.open(nested_file_fullpath)  # open document
-                            rgb_doc = doc.convert('RGB')
-                            rgb_doc.save(nested_file_fullpath[0:nested_file.lower().index(".")] + ".jpeg")
-                            os.remove(nested_file_fullpath)
+                            # doc = Image.open(nested_file_fullpath)  # open document
+                            # rgb_doc = doc.convert('RGB')
+                            # rgb_doc.save(nested_file_fullpath[0:nested_file.lower().index(".")] + ".jpeg")
+                            # os.remove(nested_file_fullpath)
+                            image = cv2.imread(nested_file_fullpath)
+                            cv2.imwrite(nested_file_fullpath[0:nested_file.lower().index(".")] + ".jpeg", image, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
                         except PIL.UnidentifiedImageError:
+                            with open(os.path.join(folder, 'logfile.txt'), 'a') as logfile:
+                                logfile.write(nested_file + '\n')
                             continue
+                        # except ValueError:
+                        #     with open(os.path.join(folder, 'logfile.txt'), 'a') as logfile:
+                        #         logfile.write(nested_file + '\n')
+                        #     continue
                     elif ".jpg" in nested_file.lower():
                         try:
                             # doc = Image.open(folder + "/" + nested_folder + "/" + nested_file)  # open document
@@ -224,16 +249,30 @@ def ToolRun_BatchCleanser():
                 except:
                     continue
             elif ".png" in file.lower():
-                print("png " + file)
                 try:
-                    doc = Image.open(file_fullpath)  # open document
-                    rgb_doc = doc.convert('RGB')
-                    rgb_doc.save(file_fullpath[0:file.lower().index(".")] + ".jpeg")
-                    doc.close()
-                    os.remove(file_fullpath)
-                except PermissionError:
-                    os.chmod(file_fullpath, 0o777)  # change file permissions
-                    os.remove(file_fullpath)
+                    # try:
+                    #     doc = Image.open(folder + "/" + nested_folder + "/" + nested_file)  # open document
+                    #     doc.save(folder + "/" + nested_folder + "/" + nested_file[0:nested_file.lower().index(".")] + ".jpeg")
+                    #     os.remove(folder + "/" + nested_folder + "/" + nested_file)
+                    # except OSError:
+                    # doc = Image.open(file_fullpath)  # open document
+                    # rgb_doc = doc.convert('RGB')
+                    # rgb_doc.save(file_fullpath[0:file.lower().index(".")] + ".jpeg")
+                    # os.remove(file_fullpath)
+                    image = cv2.imread(file_fullpath)
+                    cv2.imwrite(file_fullpath[0:file.lower().index(".")] + ".jpeg", image, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
+
+                except PIL.UnidentifiedImageError:
+                    print("error PIL" + file)
+                    with open(os.path.join(folder, 'logfile.txt'), 'a') as logfile:
+                        logfile.write("PIL: " + file + '\n')
+                    continue
+                except ValueError:
+                    print("error Value " + file)
+
+                    with open(os.path.join(folder, 'logfile.txt'), 'a') as logfile:
+                        logfile.write("Value: " + file + '\n')
+                    continue
 
                     # os.remove(folder + "\\" + file)
             elif ".jpg" in file.lower():

@@ -20,6 +20,7 @@ def ToolRun_FileList():
 
     #path of the file you want to enemurate
     def FileList(path):
+        excel_name = os.path.basename(os.path.normpath(path))
         directory =[]
         filename=[]
 
@@ -32,7 +33,7 @@ def ToolRun_FileList():
         #column name of the sheet
         df=pd.DataFrame(list(zip(directory,filename)),columns=['Directory',"filename"])
         #change the file of exccl sheet
-        df.to_csv(path + "/all.csv")
+        df.to_csv(path + f"/{excel_name}.csv")
 
         layout_popup = [
             [sg.Text("Done!")],
