@@ -1,6 +1,6 @@
 import PySimpleGUI as sg
 import pyperclip as pyperclip
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
 import io
 import os.path
 from xlsx2csv import Xlsx2csv
@@ -322,7 +322,12 @@ def ToolRun_DoubleDisplay():
                     bio1 = io.BytesIO()
                     image1.save(bio1, format="PNG")
                 except FileNotFoundError:
-                    image1 = Image.open(r'N:\Images\Shahaf\Tools\QCToolBox\Resc\NotFound.JPG')
+                    image1 = Image.open(r'N:\Images\Shahaf\Projects\Assests\NotFound.png')
+                    image1.thumbnail((550, 550))
+                    bio1 = io.BytesIO()
+                    image1.save(bio1, format="PNG")
+                except UnidentifiedImageError:
+                    image1 = Image.open(r'N:\Images\Shahaf\Projects\Assests\PDFUnsupported.png')
                     image1.thumbnail((550, 550))
                     bio1 = io.BytesIO()
                     image1.save(bio1, format="PNG")
@@ -333,7 +338,12 @@ def ToolRun_DoubleDisplay():
                     bio2 = io.BytesIO()
                     image2.save(bio2, format="PNG")
                 except FileNotFoundError:
-                    image2 = Image.open(r'N:\Images\Shahaf\Tools\QCToolBox\Resc\NotFound.JPG')
+                    image2 = Image.open(r'N:\Images\Shahaf\Projects\Assests\NotFound.png')
+                    image2.thumbnail((550, 550))
+                    bio2 = io.BytesIO()
+                    image2.save(bio2, format="PNG")
+                except UnidentifiedImageError:
+                    image2 = Image.open(r'N:\Images\Shahaf\Projects\Assests\PDFUnsupported.png')
                     image2.thumbnail((550, 550))
                     bio2 = io.BytesIO()
                     image2.save(bio2, format="PNG")
@@ -460,10 +470,16 @@ def ToolRun_DoubleDisplay():
                     bio1 = io.BytesIO()
                     image1.save(bio1, format="PNG")
                 except FileNotFoundError:
-                    image1 = Image.open(r'N:\Images\Shahaf\Tools\QCToolBox\Resc\NotFound.JPG')
+                    image1 = Image.open(r'N:\Images\Shahaf\Projects\Assests\NotFound.png')
                     image1.thumbnail((550, 550))
                     bio1 = io.BytesIO()
                     image1.save(bio1, format="PNG")
+                except UnidentifiedImageError:
+                    image1 = Image.open(r'N:\Images\Shahaf\Projects\Assests\PDFUnsupported.png')
+                    image1.thumbnail((550, 550))
+                    bio1 = io.BytesIO()
+                    image1.save(bio1, format="PNG")
+
 
                 try:
                     image2 = Image.open(img_compare[1])
@@ -471,7 +487,12 @@ def ToolRun_DoubleDisplay():
                     bio2 = io.BytesIO()
                     image2.save(bio2, format="PNG")
                 except FileNotFoundError:
-                    image2 = Image.open(r'N:\Images\Shahaf\Tools\QCToolBox\Resc\NotFound.JPG')
+                    image2 = Image.open(r'N:\Images\Shahaf\Projects\Assests\NotFound.png')
+                    image2.thumbnail((550, 550))
+                    bio2 = io.BytesIO()
+                    image2.save(bio2, format="PNG")
+                except UnidentifiedImageError:
+                    image2 = Image.open(r'N:\Images\Shahaf\Projects\Assests\PDFUnsupported.png')
                     image2.thumbnail((550, 550))
                     bio2 = io.BytesIO()
                     image2.save(bio2, format="PNG")

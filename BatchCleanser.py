@@ -1,14 +1,11 @@
 import glob
 import os
 import shutil
-
-import PIL
-import cv2
 import fitz
 import PySimpleGUI as sg
-import magic
 from PIL import Image
-import pathlib
+from PrivateFunctions import folders
+import traceback
 
 
 def ToolRun_BatchCleanser():
@@ -26,91 +23,26 @@ def ToolRun_BatchCleanser():
         if event.keycode == 65 and ctrl and event.keysym.lower() != "a":
             event.widget.event_generate("<<SelectAll>>")
 
+    def BatchCleanser(folder, isJson, isPhoto, isAudio, isVideo, isCombined, isChange):
+        def ChangeJPG(jpg_change):
+            for jpg_file in jpg_list:
+                os.rename(jpg_file, jpg_file[0:jpg_file.lower().index(".")] + ".jpeg")
 
-    def BatchCleanser(folder, isJson, isPhoto, isAudio, isVideo, isCombined):
-        def ClearJson(folder):
-            list_of_files = get_list_of_json_files()
-            for file in list_of_files:
-                file_fullpath = str(os.path.join(folder, file))
-                if "." not in file:
-                    if ".jpeg" in file:
-                        continue
-                    nested_folder = file
-                    list_of_files_nested = get_list_of_json_files_nested(file)
-                    for nested_file in list_of_files_nested:
-                        if ".jpeg" in nested_file:
-                            continue
-                        nested_file_fullpath = str(os.path.join(folder, nested_folder, nested_file))
-                        if ".json" in nested_file:
-                            os.remove(nested_file_fullpath)
-                else:
-                    if ".json" in file:
-                        os.remove(file_fullpath)
+        def ClearJson(json_list):
+            for file in json_list:
+                os.remove(file)
 
-        def ClearPhoto(folder):
-            list_of_files = get_list_of_json_files()
-            for file in list_of_files:
-                file_fullpath = str(os.path.join(folder, file))
-                if "." not in file:
-                    nested_folder = file
-                    list_of_files_nested = get_list_of_json_files_nested(file)
-                    for nested_file in list_of_files_nested:
-                        nested_file_fullpath = str(os.path.join(folder, nested_folder, nested_file))
-                        if "photo" in nested_file.lower():
-                            os.remove(nested_file_fullpath)
-                else:
-                    if "photo" in file.lower():
-                        os.remove(file_fullpath)
+        def ClearPhoto(selfie_list):
+            for file in selfie_list:
+                os.remove(file)
 
-        def ClearAudio(folder):
-            list_of_files = get_list_of_json_files()
-            for file in list_of_files:
-                if ".jpeg" in file:
-                    continue
-                file_fullpath = str(os.path.join(folder, file))
-                if "." not in file:
-                    nested_folder = file
-                    list_of_files_nested = get_list_of_json_files_nested(file)
-                    for nested_file in list_of_files_nested:
-                        if ".jpeg" in nested_file:
-                            continue
-                        nested_file_fullpath = str(os.path.join(folder, nested_folder, nested_file))
-                        if "." in nested_file:
-                            mime = magic.Magic(mime=True)
-                            nested_filename = mime.from_file(nested_file_fullpath)
-                            if nested_filename.find('audio') != -1:
-                                os.remove(nested_file_fullpath)
+        def ClearAudio(audio_list):
+            for file in audio_list:
+                os.remove(file)
 
-                else:
-                    mime = magic.Magic(mime=True)
-                    filename = mime.from_file(file_fullpath)
-                    if filename.find('audio') != -1:
-                        os.remove(file_fullpath)
-
-        def ClearVideo(folder):
-            list_of_files = get_list_of_json_files()
-            for file in list_of_files:
-                if ".jpeg" in file:
-                    continue
-                file_fullpath = os.path.join(folder, file)
-                if "." not in file:
-                    nested_folder = file
-                    list_of_files_nested = get_list_of_json_files_nested(file)
-                    for nested_file in list_of_files_nested:
-                        if ".jpeg" in nested_file:
-                            continue
-
-                        nested_file_fullpath = str(os.path.join(folder, nested_folder, nested_file))
-                        if "." in nested_file:
-                            mime = magic.Magic(mime=True)
-                            nested_filename = mime.from_file(nested_file_fullpath)
-                            if nested_filename.find('video') != -1:
-                                os.remove(nested_file_fullpath)
-                else:
-                    mime = magic.Magic(mime=True)
-                    filename = mime.from_file(file_fullpath)
-                    if filename.startswith('video/') != -1:
-                        os.remove(file_fullpath)
+        def ClearVideo(video_list):
+            for file in video_list:
+                os.remove(file)
 
         def CombineFolders(folder):
             file_list = []
@@ -135,189 +67,106 @@ def ToolRun_BatchCleanser():
                         shutil.rmtree(os.path.join(folder, f))
 
 
-        def get_list_of_json_files():
-            list_of_files = os.listdir(folder)
-            return list_of_files
+        def get_list_of_json_files(folder):
+            file_list = folders.file_list(folder, recursive=True, full_path=True)
+            pdf_list = []
+            png_list = []
+            json_list = []
+            jpg_list = []
+            selfie_list = []
+            audio_list = []
+            video_list = []
 
-        def get_list_of_json_files_nested(nested):
-            list_of_files = os.listdir(folder + "\\" + nested)
-            return list_of_files
+            for file in file_list:
+                if "photo" in file.lower():
+                    selfie_list.append(file)
+                elif file.lower().endswith(".pdf"):
+                    pdf_list.append(file)
+                elif file.lower().endswith(".png"):
+                    png_list.append(file)
+                elif file.lower().endswith(".json") or file.lower().endswith(".xml") or file.lower().endswith(".txt"):
+                    json_list.append(file)
+                elif file.lower().endswith(".jpg"):
+                    jpg_list.append(file)
+                elif file.lower().endswith(".wav"):
+                    audio_list.append(file)
+                elif file.lower().endswith(".webm") or file.lower().endswith(".mp4") or file.lower().endswith(".mpeg") or file.lower().endswith(".mov"):
+                    video_list.append(file)
 
+            return file_list, selfie_list, pdf_list, png_list, json_list, jpg_list, audio_list, video_list
 
-        list_of_files = get_list_of_json_files()
-        folderlen = len(list_of_files)
-        count = 0
-        for file in list_of_files:
-            count += 1
-            print(str(count) + "/" + str(folderlen))
-            file_fullpath = str(os.path.join(folder, file))
-            if ".jpeg" in file:
-                continue
-            if "." not in file:
-                nested_folder = file
-                list_of_files_nested = get_list_of_json_files_nested(file)
-                for nested_file in list_of_files_nested:
-                    nested_file_fullpath = str(os.path.join(folder, nested_folder, nested_file))
-                    if ".jpeg" in nested_file:
-                        continue
-                    if ".pdf" in nested_file:
+        with open("log.txt", "w") as log:
+            try:
+                list_of_files, selfie_list, pdf_list, png_list, json_list, jpg_list, audio_list, video_list = get_list_of_json_files(folder)
+                if len(pdf_list) > 0:
+                    for pdf_file in pdf_list:
                         try:
-                            doc = fitz.open(nested_file_fullpath)  # open document
+                            doc = fitz.open(pdf_file)  # open document
                             i = 0
                             for page in doc:
-                                if "page" in nested_file:
-                                    name = nested_file[0:nested_file.lower().index("page")]
-                                    if os.path.isfile(f"{folder}/{nested_folder}/{name}page0.jpeg"):
+                                if "page" in pdf_file:
+                                    name = pdf_file[0:pdf_file.lower().index("page")]
+                                    if os.path.isfile(f"{name}page0.jpeg"):
                                         pix = page.get_pixmap()  # render page to an image
-                                        pix.save(f"{folder}/{nested_folder}/{name}page1.jpeg", 'JPEG')
+                                        pix.save(f"{name}page1.jpeg", 'JPEG')
                                     else:
                                         pix = page.get_pixmap()  # render page to an image
-                                        pix.save(f"{folder}/{nested_folder}/{name}page{i}.jpeg", 'JPEG')
+                                        pix.save(f"{name}page{i}.jpeg", 'JPEG')
                                         i += 1
-                                elif "supp" in nested_file:
-                                    name = nested_file[0:nested_file.lower().index("supp")]
+                                elif "supp" in pdf_file:
+                                    name = pdf_file[0:pdf_file.lower().index("supp")]
                                     pix = page.get_pixmap()  # render page to an image
-                                    pix.save(f"{folder}/{nested_folder}/{name}supp{i}.jpeg", 'JPEG')
+                                    pix.save(f"{name}supp{i}.jpeg", 'JPEG')
                                     i += 1
                                 else:
-                                    name = nested_file[0:nested_file.lower().index(".pdf")]
+                                    name = pdf_file[0:pdf_file.lower().index(".pdf")]
                                     pix = page.get_pixmap()  # render page to an image
-                                    pix.save(f"{folder}/{nested_folder}/{name}_{i}.jpeg", 'JPEG')
+                                    pix.save(f"{name}_{i}.jpeg", 'JPEG')
                                     i += 1
 
                             doc.close()
-                            os.remove(nested_file_fullpath)
+                            os.remove(pdf_file)
                         except:
                             continue
-                    elif ".png" in nested_file.lower():
-                        try:
-                            # try:
-                            #     doc = Image.open(folder + "/" + nested_folder + "/" + nested_file)  # open document
-                            #     doc.save(folder + "/" + nested_folder + "/" + nested_file[0:nested_file.lower().index(".")] + ".jpeg")
-                            #     os.remove(folder + "/" + nested_folder + "/" + nested_file)
-                            # except OSError:
-                            # doc = Image.open(nested_file_fullpath)  # open document
-                            # rgb_doc = doc.convert('RGB')
-                            # rgb_doc.save(nested_file_fullpath[0:nested_file.lower().index(".")] + ".jpeg")
-                            # os.remove(nested_file_fullpath)
-                            image = cv2.imread(nested_file_fullpath)
-                            cv2.imwrite(nested_file_fullpath[0:nested_file.lower().index(".")] + ".jpeg", image, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
-                        except PIL.UnidentifiedImageError:
-                            with open(os.path.join(folder, 'logfile.txt'), 'a') as logfile:
-                                logfile.write(nested_file + '\n')
-                            continue
-                        # except ValueError:
-                        #     with open(os.path.join(folder, 'logfile.txt'), 'a') as logfile:
-                        #         logfile.write(nested_file + '\n')
-                        #     continue
-                    elif ".jpg" in nested_file.lower():
-                        try:
-                            # doc = Image.open(folder + "/" + nested_folder + "/" + nested_file)  # open document
-                            # doc.save(folder + "/" + nested_folder + "/" + nested_file[0:nested_file.lower().index(".")] + ".jpeg")
-                            # os.remove(folder + "/" + nested_folder + "/" + nested_file)
-                            os.rename(nested_file_fullpath, nested_file_fullpath[0:nested_file.lower().index(".")] + ".jpeg")
 
-                        except:
-                            continue
-            elif ".pdf" in file:
-                try:
-                    doc = fitz.open(file_fullpath)  # open document
-                    i = 0
-                    for page in doc:
-                        if "page" in file:
-                            name = file[0:file.lower().index("page")]
-                            if os.path.isfile(f"{folder}/{name}page0.jpeg"):
-                                pix = page.get_pixmap()  # render page to an image
-                                pix.save(f"{folder}/{name}page1.jpeg", 'JPEG')
-                            else:
-                                pix = page.get_pixmap()  # render page to an image
-                                pix.save(f"{folder}/{name}page{i}.jpeg", 'JPEG')
-                                i += 1
-                        elif "supp" in file:
-                            name = file[0:file.lower().index("supp")]
-                            pix = page.get_pixmap()  # render page to an image
-                            pix.save(f"{folder}/{name}supp{i}.jpeg", 'JPEG')
-                            i += 1
-                        else:
-                            name = file[0:file.lower().index(".pdf")]
-                            pix = page.get_pixmap()  # render page to an image
-                            pix.save(f"{folder}/{name}_{i}.jpeg", 'JPEG')
-                            i += 1
+                if len(png_list) > 0:
+                    for png_file in png_list:
+                        png2jpeg = png_file[0:png_file.lower().rfind(".png")] + ".jpeg"
+                        image = Image.open(png_file)
+                        image_rgb = image.convert("RGB")
+                        image_rgb.save(png2jpeg, "JPEG", quality=90)
+                        image.close()
+                        os.remove(png_file)
 
-                    doc.close()
-                    os.remove(file_fullpath)
-                except:
-                    continue
-            elif ".png" in file.lower():
-                try:
-                    # try:
-                    #     doc = Image.open(folder + "/" + nested_folder + "/" + nested_file)  # open document
-                    #     doc.save(folder + "/" + nested_folder + "/" + nested_file[0:nested_file.lower().index(".")] + ".jpeg")
-                    #     os.remove(folder + "/" + nested_folder + "/" + nested_file)
-                    # except OSError:
-                    # doc = Image.open(file_fullpath)  # open document
-                    # rgb_doc = doc.convert('RGB')
-                    # rgb_doc.save(file_fullpath[0:file.lower().index(".")] + ".jpeg")
-                    # os.remove(file_fullpath)
-                    image = cv2.imread(file_fullpath)
-                    cv2.imwrite(file_fullpath[0:file.lower().index(".")] + ".jpeg", image, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
+                if isChange and len(jpg_list) > 0:
+                    ChangeJPG(jpg_list)
 
-                except PIL.UnidentifiedImageError:
-                    print("error PIL" + file)
-                    with open(os.path.join(folder, 'logfile.txt'), 'a') as logfile:
-                        logfile.write("PIL: " + file + '\n')
-                    continue
-                except ValueError:
-                    print("error Value " + file)
+                if isJson and len(json_list) > 0:
+                    ClearJson(json_list)
 
-                    with open(os.path.join(folder, 'logfile.txt'), 'a') as logfile:
-                        logfile.write("Value: " + file + '\n')
-                    continue
+                if isPhoto and len(selfie_list) > 0:
+                    ClearPhoto(selfie_list)
 
-                    # os.remove(folder + "\\" + file)
-            elif ".jpg" in file.lower():
-                print("jpg " + file)
-                try:
-                    os.rename(file_fullpath, file_fullpath[0:file.lower().index(".")] + ".jpeg")
-                    # doc = Image.open(folder + "/" + file)  # open document
-                    # doc.save(folder + "/" + file[0:file.lower().index(".")] + ".jpeg")
-                    # os.remove(folder + "/" + file)
-                except:
-                    continue
+                if isAudio and len(audio_list) > 0:
+                    ClearAudio(audio_list)
 
-        if isJson:
-            ClearJson(folder)
+                if isVideo and len(video_list) > 0:
+                    ClearVideo(video_list)
 
-        if isPhoto:
-            ClearPhoto(folder)
+                if isCombined:
+                    CombineFolders(folder)
+            except Exception:
+                traceback.print_exc(file=log)
 
-        if isAudio:
-            ClearAudio(folder)
-
-        if isVideo:
-            ClearVideo(folder)
-
-        if isCombined:
-            CombineFolders(folder)
-
-        layout_popup = [
-            [sg.Text("Done!")],
-            [sg.Button('Close')]
-        ]
-        popup = sg.Window("Complete", layout_popup, icon=r'N:\Images\Shahaf\Projects\Assests\pdf2jpg.ico')
-
-        while True:
-            event, values = popup.read()
-            if event == "Close" or event == sg.WIN_CLOSED:
-                break
-        popup.close()
+        sg.popup("DONE!")
 
     top = [
         [sg.Text("Folder")],
         [sg.FolderBrowse(key="folder_name"), sg.InputText(key='myfolder')],
         [sg.Checkbox("Combine All to One Folder", key="-COMBINE-", default=False)],
+        [sg.Checkbox("JPG -> JPEG", key="-JPG-", default=True)],
         [sg.Text("Choose Extensions To Delete and")],
-        [sg.Checkbox("Json", key="-JSON-"), sg.Checkbox("Photo", key="-PHOTO-"), sg.Checkbox("Video", key="-VIDEO-"), sg.Checkbox("Audio", key="-AUDIO-")]
+        [sg.Checkbox("Json", key="-JSON-", default=True), sg.Checkbox("Photo", key="-PHOTO-", default=True), sg.Checkbox("Video", key="-VIDEO-"), sg.Checkbox("Audio", key="-AUDIO-")]
     ]
 
     buttons = [
@@ -349,7 +198,7 @@ def ToolRun_BatchCleanser():
         if event == "Start" and len(values['myfolder']) > 1:
             # if values["-COMBINE-"]:
             #     # os.makedirs(values['myfolder'] + "/Combine")
-            BatchCleanser(values['myfolder'], values["-JSON-"], values["-PHOTO-"], values["-AUDIO-"], values["-VIDEO-"], values["-COMBINE-"])
+            BatchCleanser(values['myfolder'], values["-JSON-"], values["-PHOTO-"], values["-AUDIO-"], values["-VIDEO-"], values["-COMBINE-"], values["-JPG-"])
         if event == sg.WIN_CLOSED or event == "Close":
             break
 
