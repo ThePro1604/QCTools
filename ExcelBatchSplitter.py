@@ -1,7 +1,26 @@
+import os
 import pandas as pd
 from PrivateFunctions import folders
 import PySimpleGUI as sg
+import sys
+import logging
 
+
+try:
+    os.remove("C:/QCCenter/Logs/MasterSplitter.log")
+    logging.basicConfig(filename='C:/QCCenter/Logs/MasterSplitter.log')
+except FileNotFoundError:
+    logging.basicConfig(filename='C:/QCCenter/Logs/MasterSplitter.log')
+
+
+def exception_hook(exc_type, exc_value, exc_traceback):
+    logging.error(
+        "Uncaught exception",
+        exc_info=(exc_type, exc_value, exc_traceback)
+    )
+
+
+sys.excepthook = exception_hook
 
 def _onKeyRelease(event):
     ctrl = (event.state & 0x4) != 0
@@ -118,7 +137,7 @@ layout = [
 
 ]
 
-window = sg.Window("Excel Batch Splitter", layout, icon=r'N:\Images\Shahaf\Projects\Assests\ExcelSplitter.ico', finalize=True)
+window = sg.Window("MasterSplitter", layout, icon=r'N:\Images\Shahaf\Projects\Assests\ExcelSplitter.ico', finalize=True)
 window.TKroot.bind_all("<Key>", _onKeyRelease, "+")
 
 while True:

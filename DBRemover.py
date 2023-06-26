@@ -1,7 +1,25 @@
 import os
 import subprocess
 import PySimpleGUI as sg
+import sys
+import logging
 
+
+try:
+    os.remove("C:/QCCenter/Logs/DBRemover.log")
+    logging.basicConfig(filename='C:/QCCenter/Logs/DBRemover.log')
+except FileNotFoundError:
+    logging.basicConfig(filename='C:/QCCenter/Logs/DBRemover.log')
+
+
+def exception_hook(exc_type, exc_value, exc_traceback):
+    logging.error(
+        "Uncaught exception",
+        exc_info=(exc_type, exc_value, exc_traceback)
+    )
+
+
+sys.excepthook = exception_hook
 
 def _onKeyRelease(event):
     ctrl = (event.state & 0x4) != 0

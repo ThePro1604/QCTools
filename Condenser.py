@@ -1,9 +1,27 @@
 import os
 import shutil
 import PySimpleGUI as sg
+import sys
+import logging
+
+
+try:
+    os.remove("C:/QCCenter/Logs/Condenser.log")
+    logging.basicConfig(filename='C:/QCCenter/Logs/Condenser.log')
+except FileNotFoundError:
+    logging.basicConfig(filename='C:/QCCenter/Logs/Condenser.log')
+
 
 # root_path = r"N:\Images\Shahaf\QCSupport\PaySafe"
 # new_root = os.path.join(root_path, "Organized")
+def exception_hook(exc_type, exc_value, exc_traceback):
+    logging.error(
+        "Uncaught exception",
+        exc_info=(exc_type, exc_value, exc_traceback)
+    )
+
+
+sys.excepthook = exception_hook
 
 def _onKeyRelease(event):
     ctrl = (event.state & 0x4) != 0

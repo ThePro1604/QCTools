@@ -4,9 +4,26 @@ import shutil
 import PySimpleGUI as sg
 from collections import defaultdict
 import pandas as pd
+import sys
+import logging
+
+
+try:
+    os.remove("C:/QCCenter/Logs/MoveFiles.log")
+    logging.basicConfig(filename='C:/QCCenter/Logs/MoveFiles.log')
+except FileNotFoundError:
+    logging.basicConfig(filename='C:/QCCenter/Logs/MoveFiles.log')
 
 
 def ToolRun_MoveFiles():
+    def exception_hook(exc_type, exc_value, exc_traceback):
+        logging.error(
+            "Uncaught exception",
+            exc_info=(exc_type, exc_value, exc_traceback)
+        )
+
+    sys.excepthook = exception_hook
+
     def _onKeyRelease(event):
         ctrl = (event.state & 0x4) != 0
         if event.keycode == 88 and ctrl and event.keysym.lower() != "x":
@@ -21,11 +38,15 @@ def ToolRun_MoveFiles():
         if event.keycode == 65 and ctrl and event.keysym.lower() != "a":
             event.widget.event_generate("<<SelectAll>>")
 
+    def GetHeader(excel):
+        df = pd.read_excel(file)
+        headers = df.columns[:20].tolist()
 
     def MoveFiles(path, file):
         df = pd.read_excel(file)
         pattern = re.compile(r'^[A-Z\d]+$')
         data_dict = defaultdict(list)
+
 
         for root, subdirs, files in os.walk(path):
             for name in files:

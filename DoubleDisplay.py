@@ -7,6 +7,15 @@ from xlsx2csv import Xlsx2csv
 from io import StringIO
 import pandas as pd
 from warnings import simplefilter
+import sys
+import logging
+
+
+try:
+    os.remove("C:/QCCenter/Logs/DoubleDisplay.log")
+    logging.basicConfig(filename='C:/QCCenter/Logs/DoubleDisplay.log')
+except FileNotFoundError:
+    logging.basicConfig(filename='C:/QCCenter/Logs/DoubleDisplay.log')
 
 
 simplefilter(action="ignore", category=pd.errors.PerformanceWarning)
@@ -28,6 +37,14 @@ def _onKeyRelease(event):
 
 
 def ToolRun_DoubleDisplay():
+    def exception_hook(exc_type, exc_value, exc_traceback):
+        logging.error(
+            "Uncaught exception",
+            exc_info=(exc_type, exc_value, exc_traceback)
+        )
+
+    sys.excepthook = exception_hook
+
     def warning():
         layout_popup = [
             [sg.Text("Make Sure The Excel File Is Closed!")],

@@ -1,9 +1,25 @@
 import os
 import shutil
 import PySimpleGUI as sg
+import sys
+import logging
+
+try:
+    os.remove("C:/QCCenter/Logs/NameSwitcher.log")
+    logging.basicConfig(filename='C:/QCCenter/Logs/NameSwitcher.log')
+except FileNotFoundError:
+    logging.basicConfig(filename='C:/QCCenter/Logs/NameSwitcher.log')
 
 
 def ToolRun_NameSwitcher():
+    def exception_hook(exc_type, exc_value, exc_traceback):
+        logging.error(
+            "Uncaught exception",
+            exc_info=(exc_type, exc_value, exc_traceback)
+        )
+
+    sys.excepthook = exception_hook
+
     def _onKeyRelease(event):
         ctrl = (event.state & 0x4) != 0
         if event.keycode == 88 and ctrl and event.keysym.lower() != "x":
